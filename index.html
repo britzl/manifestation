@@ -28,6 +28,10 @@
 
     <style>
         input { margin-right: 1em; }
+        textarea
+        {
+           font-family: monospace;
+        }
     </style>
 
     <script>
@@ -169,7 +173,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="one-third column">
+            <div class="three columns">
                 <form>
                     <h4>Exclude</h4>
                     <input id="physics" type="checkbox" onchange="update_manifest()"/>Physics</br>
@@ -179,9 +183,9 @@
                     <input id="release" type="checkbox" onchange="update_manifest()"/>Release</br>
                 </form>
             </div>
-            <div class="two-thirds column">
+            <div class="nine columns">
                 <h4>Manifest</h4>
-                <textarea id="manifest" rows="20" cols="80" readonly style="height: auto">Generated app manifest goes here</textarea>
+                <textarea id="manifest" rows="20" cols="80" readonly style="height: auto;">Generated app manifest goes here</textarea>
                 <button class="js-textareacopybtn" style="vertical-align:top;" onclick="copy_to_clipboard()">Copy to clipboard</button>
             </div>
         </div>
