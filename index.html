@@ -47,14 +47,22 @@
 
         var platforms = [ "x86_64-osx", "x86_64-linux", "js-web", "x86-win32", "x86_64-win32", "armv7-android", "armv7-ios", "arm64-ios" ]
 
+        function is_windows(platform) {
+            return platform == "x86-win32" || platform == "x86_64-win32"
+        }
+        
+        function platformify_excluded_lib(platform, name) {
+            return is_windows(platform) ? ('"' + "lib" + name + '"') : ('"' + name + '"');
+        }
+
         function platformify_lib(platform, name) {
-            return (platform == "x86-win32" || platform == "x86_64-win32") ? ('"' + "lib" + name + '.lib"') : ('"' + name + '"');
+            return is_windows(platform) ? ('"' + "lib" + name + '.lib"') : ('"' + name + '"');
         }
 
         function add_excluded_libs(exclusions, names) {
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
-                    exclusions[platform].excludeLibs.push(platformify_lib(platform, name));
+                    exclusions[platform].excludeLibs.push(platformify_excluded_lib(platform, name));
                 });
             });
         }
