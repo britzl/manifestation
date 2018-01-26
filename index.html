@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Basic Page Needs
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta charset="utf-8">
+    <title>Defold App Manifest generator</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+    <!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/skeleton.css">
+
+    <!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+
+    <style>
+        input { margin-right: 1em; }
+    </style>
+
+    <script>
+        // https://stackoverflow.com/a/4673436
+        if (!String.prototype.format) {
+            String.prototype.format = function() {
+                var args = arguments;
+                return this.replace(/{(\d+)}/g, function(match, number) {
+                    return typeof args[number] != 'undefined' ? args[number] : match;
+                });
+            };
+        }
+
+        var platforms = [ "x86_64-osx", "x86_64-linux", "js-web", "x86-win32", "x86_64-win32", "armv7-android", "armv7-ios", "arm64-ios" ]
+
+        function platformify_lib(platform, name) {
+            return (platform == "x86-win32" || platform == "x86_64-win32") ? ('"' + "lib" + name + '"') : ('"' + name + '"');
+        }
+
+        function add_excluded_libs(exclusions, names) {
+            names.forEach(function(name) {
+                platforms.forEach(function(platform) {
+                    exclusions[platform].excludeLibs.push(platformify_lib(platform, name));
+                });
+            });
+        }
+        function add_excluded_symbols(exclusions, names) {
+            names.forEach(function(name) {
+                platforms.forEach(function(platform) {
+                    exclusions[platform].excludeSymbols.push('"' + name + '""');
+                });
+            });
+        }
+        function add_libs(exclusions, names) {
+            names.forEach(function(name) {
+                platforms.forEach(function(platform) {
+                    exclusions[platform].libs.push(platformify_lib(platform, name));
+                });
+            });
+        }
+
+        function update_manifest() {
+            var settings = {
+                physics: document.getElementById("physics").checked,
+                record: document.getElementById("record").checked,
+                profiler: document.getElementById("profiler").checked,
+                facebook: document.getElementById("facebook").checked,
+                release: document.getElementById("release").checked,
+            }
+
+            var excluded
+            var exclusions = {
+                settings: [],
+                platforms: [],
+            };
+            platforms.forEach(function(platform) {
+                exclusions.platforms[platform] = {
+                    excludeLibs: [],
+                    excludeSymbols: [],
+                    libs: [],
+                }
+            });
+
+            if (settings.physics) {
+                exclusions.settings.push("Physics");
+                add_excluded_libs(exclusions.platforms, ["BulletDynamics", "BulletCollision", "Box2D", "LinearMath", "physics" ]);
+                add_libs(exclusions.platforms, [ "physics_null" ]);
+            }
+            if (settings.record) {
+                exclusions.settings.push("Record");
+                add_excluded_libs(exclusions.platforms, [ "record", "vpx" ]);
+                add_libs(exclusions.platforms, [ "record_null" ]);
+            }
+            if (settings.profiler) {
+                exclusions.settings.push("Profiler");
+                add_excluded_libs(exclusions.platforms, [ "profilerext" ]);
+                add_excluded_symbols(exclusions.platforms, [ "ProfilerExt" ]);
+                add_libs(exclusions.platforms, []);
+            }
+            if (settings.facebook) {
+                exclusions.settings.push("Facebook");
+                add_excluded_libs(exclusions.platforms, []);
+                add_excluded_symbols(exclusions.platforms, [ "FacebookExt" ]);
+                add_libs(exclusions.platforms, []);
+            }
+            if (settings.release) {
+                exclusions.settings.push("Release");
+                add_excluded_libs(exclusions.platforms, ["engine"]);
+                add_excluded_symbols(exclusions.platforms, []);
+                add_libs(exclusions.platforms, ["engine_release"]);
+            }
+
+            var manifest = "# App manifest generated {0}\n".format(new Date());
+            manifest += "# Exclude: {0}\n".format(exclusions.settings.join());
+            manifest += "platforms:\n";
+            platforms.forEach(function(platform) {
+                manifest += "    {0}:\n".format(platform);
+                manifest += "        context:\n";
+                manifest += "            excludedLibs: [{0}]\n".format(exclusions.platforms[platform].excludeLibs.join());
+                manifest += "            excludedSymbols: [{0}]\n".format(exclusions.platforms[platform].excludeSymbols.join());
+                manifest += "            libs: [{0}]\n".format(exclusions.platforms[platform].libs.join());
+                manifest += "\n";
+            });
+
+            document.getElementById("manifest").value = manifest;
+        }
+    </script>
+
+    <script>
+        function copy_to_clipboard() {
+            document.getElementById("manifest").select();
+            try {
+                var successful = document.execCommand('copy');
+                var msg = successful ? 'successful' : 'unsuccessful';
+                console.log('Copying text command was ' + msg);
+            } catch (err) {
+                console.log('Oops, unable to copy');
+            }
+            // deselect
+            if (document.selection) {
+                document.selection.empty();
+            }
+            else if ( window.getSelection ) {
+                window.getSelection().removeAllRanges();
+            }
+        }
+    </script>
+</head>
+
+<body onload="update_manifest();">
+
+    <!-- Primary Page Layout
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <div class="container">
+        <div class="row">
+            <div style="margin-top: 5%">
+                <h3>Defold App Manifest generator</h3>
+                <p>This tool generates a Defold App Manifest that can be used to exclude parts of the engine.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="one-third column">
+                <form>
+                    <h4>Exclude</h4>
+                    <input id="physics" type="checkbox" onchange="update_manifest()"/>Physics</br>
+                    <input id="record" type="checkbox" onchange="update_manifest()"/>Record</br>
+                    <input id="profiler" type="checkbox" onchange="update_manifest()"/>Profiler</br>
+                    <input id="facebook" type="checkbox" onchange="update_manifest()"/>Facebook</br>
+                    <input id="release" type="checkbox" onchange="update_manifest()"/>Release</br>
+                </form>
+            </div>
+            <div class="two-thirds column">
+                <h4>Manifest</h4>
+                <textarea id="manifest" rows="20" cols="80" readonly style="height: auto">Generated app manifest goes here</textarea>
+                <button class="js-textareacopybtn" style="vertical-align:top;" onclick="copy_to_clipboard()">Copy Textarea</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- End Document
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>
