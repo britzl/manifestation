@@ -48,7 +48,7 @@
         var platforms = [ "x86_64-osx", "x86_64-linux", "js-web", "x86-win32", "x86_64-win32", "armv7-android", "armv7-ios", "arm64-ios" ]
 
         function platformify_lib(platform, name) {
-            return (platform == "x86-win32" || platform == "x86_64-win32") ? ('"' + "lib" + name + '"') : ('"' + name + '"');
+            return (platform == "x86-win32" || platform == "x86_64-win32") ? ('"' + "lib" + name + '.lib"') : ('"' + name + '"');
         }
 
         function add_excluded_libs(exclusions, names) {
