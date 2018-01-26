@@ -50,7 +50,7 @@
         function is_windows(platform) {
             return platform == "x86-win32" || platform == "x86_64-win32"
         }
-        
+
         function platformify_excluded_lib(platform, name) {
             return is_windows(platform) ? ('"' + "lib" + name + '"') : ('"' + name + '"');
         }
@@ -69,7 +69,7 @@
         function add_excluded_symbols(exclusions, names) {
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
-                    exclusions[platform].excludeSymbols.push('"' + name + '""');
+                    exclusions[platform].excludeSymbols.push('"' + name + '"');
                 });
             });
         }
@@ -88,6 +88,10 @@
                 profiler: document.getElementById("profiler").checked,
                 facebook: document.getElementById("facebook").checked,
                 release: document.getElementById("release").checked,
+                sound: document.getElementById("sound").checked,
+                graphics: document.getElementById("graphics").checked,
+                headless: document.getElementById("headless").checked,
+                input: document.getElementById("input").checked,
             }
 
             var excluded
@@ -108,7 +112,7 @@
                 add_excluded_libs(exclusions.platforms, ["BulletDynamics", "BulletCollision", "Box2D", "LinearMath", "physics" ]);
                 add_libs(exclusions.platforms, [ "physics_null" ]);
             }
-            if (settings.record) {
+            if (settings.record || settings.headless) {
                 exclusions.settings.push("Record");
                 add_excluded_libs(exclusions.platforms, [ "record", "vpx" ]);
                 add_libs(exclusions.platforms, [ "record_null" ]);
@@ -131,9 +135,27 @@
                 add_excluded_symbols(exclusions.platforms, []);
                 add_libs(exclusions.platforms, ["engine_release"]);
             }
+            if (settings.sound || settings.headless) {
+                exclusions.settings.push("Sound");
+                add_excluded_libs(exclusions.platforms, ["sound", "tremolo"]);
+                add_excluded_symbols(exclusions.platforms, ["DefaultSoundDevice", "AudioDecoderWav", "AudioDecoderStbVorbis", "AudioDecoderTremolo"]);
+                add_libs(exclusions.platforms, ["sound_null"]);
+            }
+            if (settings.graphics || settings.headless) {
+                exclusions.settings.push("Graphics");
+                add_excluded_libs(exclusions.platforms, ["graphics"]);
+                add_excluded_symbols(exclusions.platforms, []);
+                add_libs(exclusions.platforms, ["graphics_null"]);
+            }
+            if (settings.input || settings.headless) {
+                exclusions.settings.push("Input");
+                add_excluded_libs(exclusions.platforms, ["hid"]);
+                add_excluded_symbols(exclusions.platforms, []);
+                add_libs(exclusions.platforms, ["hid_null"]);
+            }
 
             var manifest = "# App manifest generated {0}\n".format(new Date());
-            manifest += "# Exclude: {0}\n".format(exclusions.settings.join());
+            manifest += "# Settings: {0}\n".format(exclusions.settings.join());
             manifest += "platforms:\n";
             platforms.forEach(function(platform) {
                 manifest += "    {0}:\n".format(platform);
@@ -177,18 +199,22 @@
         <div class="row">
             <div style="margin-top: 5%">
                 <h3>Defold App Manifest generator</h3>
-                <p>This tool generates a Defold App Manifest that can be used to exclude parts of the engine.</p>
+                <p>This tool generates a Defold App Manifest that can be used to build a custom engine.</p>
             </div>
         </div>
         <div class="row">
             <div class="three columns">
                 <form>
-                    <h4>Exclude</h4>
-                    <input id="physics" type="checkbox" onchange="update_manifest()"/>Physics</br>
-                    <input id="record" type="checkbox" onchange="update_manifest()"/>Record</br>
-                    <input id="profiler" type="checkbox" onchange="update_manifest()"/>Profiler</br>
-                    <input id="facebook" type="checkbox" onchange="update_manifest()"/>Facebook</br>
+                    <h4>Settings</h4>
+                    <input id="physics" type="checkbox" onchange="update_manifest()"/>Exclude Physics</br>
+                    <input id="record" type="checkbox" onchange="update_manifest()"/>Exclude Record</br>
+                    <input id="profiler" type="checkbox" onchange="update_manifest()"/>Exclude Profiler</br>
+                    <input id="facebook" type="checkbox" onchange="update_manifest()"/>Exclude Facebook</br>
+                    <input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound</br>
+                    <input id="graphics" type="checkbox" onchange="update_manifest()"/>Exclude Graphics</br>
+                    <input id="input" type="checkbox" onchange="update_manifest()"/>Exclude Input</br>
                     <input id="release" type="checkbox" onchange="update_manifest()"/>Release</br>
+                    <input id="headless" type="checkbox" onchange="update_manifest()"/>Make headless</br>
                 </form>
             </div>
             <div class="nine columns">
