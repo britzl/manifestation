@@ -109,7 +109,7 @@
 
             if (settings.physics) {
                 exclusions.settings.push("Physics");
-                add_excluded_libs(exclusions.platforms, ["BulletDynamics", "BulletCollision", "Box2D", "LinearMath", "physics" ]);
+                add_excluded_libs(exclusions.platforms, ["BulletDynamics", "BulletCollision", "LinearMath", "Box2D", "physics" ]);
                 add_libs(exclusions.platforms, [ "physics_null" ]);
             }
             if (settings.record || settings.headless) {
