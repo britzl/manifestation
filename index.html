@@ -129,12 +129,6 @@
                 add_excluded_symbols(exclusions.platforms, [ "FacebookExt" ]);
                 add_libs(exclusions.platforms, []);
             }
-            if (settings.release) {
-                exclusions.settings.push("Release");
-                add_excluded_libs(exclusions.platforms, ["engine"]);
-                add_excluded_symbols(exclusions.platforms, []);
-                add_libs(exclusions.platforms, ["engine_release"]);
-            }
             if (settings.sound || settings.headless) {
                 exclusions.settings.push("Sound");
                 add_excluded_libs(exclusions.platforms, ["sound", "tremolo"]);
@@ -152,6 +146,18 @@
                 add_excluded_libs(exclusions.platforms, ["hid"]);
                 add_excluded_symbols(exclusions.platforms, []);
                 add_libs(exclusions.platforms, ["hid_null"]);
+            }
+            if (settings.release) {
+                exclusions.settings.push("Release");
+                add_excluded_libs(exclusions.platforms, ["engine"]);
+                add_excluded_symbols(exclusions.platforms, []);
+                add_libs(exclusions.platforms, ["engine_release"]);
+            }
+            else {
+                exclusions.settings.push("Debug");
+                add_excluded_libs(exclusions.platforms, ["engine"]);
+                add_excluded_symbols(exclusions.platforms, []);
+                add_libs(exclusions.platforms, ["engine"]);
             }
 
             var manifest = "# App manifest generated {0}\n".format(new Date());
