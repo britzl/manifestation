@@ -59,24 +59,31 @@
             return is_windows(platform) ? ('"' + "lib" + name + '.lib"') : ('"' + name + '"');
         }
 
-        function add_excluded_libs(exclusions, names) {
+        function push_excluded_libs(exclusions, names) {
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
                     exclusions[platform].excludeLibs.push(platformify_excluded_lib(platform, name));
                 });
             });
         }
-        function add_excluded_symbols(exclusions, names) {
+        function push_excluded_symbols(exclusions, names) {
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
                     exclusions[platform].excludeSymbols.push('"' + name + '"');
                 });
             });
         }
-        function add_libs(exclusions, names) {
+        function push_libs(exclusions, names) {
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
                     exclusions[platform].libs.push(platformify_lib(platform, name));
+                });
+            });
+        }
+        function unshift_libs(exclusions, names) {
+            names.forEach(function(name) {
+                platforms.forEach(function(platform) {
+                    exclusions[platform].libs.unshift(platformify_lib(platform, name));
                 });
             });
         }
@@ -101,63 +108,57 @@
             };
             platforms.forEach(function(platform) {
                 exclusions.platforms[platform] = {
+                    id: platform,
                     excludeLibs: [],
                     excludeSymbols: [],
                     libs: [],
-                }
+                };
             });
 
             if (settings.physics) {
                 exclusions.settings.push("Physics");
-                add_excluded_libs(exclusions.platforms, ["BulletDynamics", "BulletCollision", "LinearMath", "Box2D", "physics" ]);
-                add_libs(exclusions.platforms, [ "physics_null" ]);
+                push_excluded_libs(exclusions.platforms, ["BulletDynamics", "BulletCollision", "LinearMath", "Box2D", "physics" ]);
+                push_libs(exclusions.platforms, [ "physics_null" ]);
             }
             if (settings.record || settings.headless) {
                 exclusions.settings.push("Record");
-                add_excluded_libs(exclusions.platforms, [ "record", "vpx" ]);
-                add_libs(exclusions.platforms, [ "record_null" ]);
+                push_excluded_libs(exclusions.platforms, [ "record", "vpx" ]);
+                push_libs(exclusions.platforms, [ "record_null" ]);
             }
             if (settings.profiler) {
                 exclusions.settings.push("Profiler");
-                add_excluded_libs(exclusions.platforms, [ "profilerext" ]);
-                add_excluded_symbols(exclusions.platforms, [ "ProfilerExt" ]);
-                add_libs(exclusions.platforms, []);
+                push_excluded_libs(exclusions.platforms, [ "profilerext" ]);
+                push_excluded_symbols(exclusions.platforms, [ "ProfilerExt" ]);
             }
             if (settings.facebook) {
                 exclusions.settings.push("Facebook");
-                add_excluded_libs(exclusions.platforms, []);
-                add_excluded_symbols(exclusions.platforms, [ "FacebookExt" ]);
-                add_libs(exclusions.platforms, []);
+                push_excluded_symbols(exclusions.platforms, [ "FacebookExt" ]);
             }
             if (settings.sound || settings.headless) {
                 exclusions.settings.push("Sound");
-                add_excluded_libs(exclusions.platforms, ["sound", "tremolo"]);
-                add_excluded_symbols(exclusions.platforms, ["DefaultSoundDevice", "AudioDecoderWav", "AudioDecoderStbVorbis", "AudioDecoderTremolo"]);
-                add_libs(exclusions.platforms, ["sound_null"]);
+                push_excluded_libs(exclusions.platforms, ["sound", "tremolo"]);
+                push_excluded_symbols(exclusions.platforms, ["DefaultSoundDevice", "AudioDecoderWav", "AudioDecoderStbVorbis", "AudioDecoderTremolo"]);
+                push_libs(exclusions.platforms, ["sound_null"]);
             }
             if (settings.graphics || settings.headless) {
                 exclusions.settings.push("Graphics");
-                add_excluded_libs(exclusions.platforms, ["graphics"]);
-                add_excluded_symbols(exclusions.platforms, []);
-                add_libs(exclusions.platforms, ["graphics_null"]);
+                push_excluded_libs(exclusions.platforms, ["graphics"]);
+                push_libs(exclusions.platforms, ["graphics_null"]);
             }
             if (settings.input || settings.headless) {
                 exclusions.settings.push("Input");
-                add_excluded_libs(exclusions.platforms, ["hid"]);
-                add_excluded_symbols(exclusions.platforms, []);
-                add_libs(exclusions.platforms, ["hid_null"]);
+                push_excluded_libs(exclusions.platforms, ["hid"]);
+                push_libs(exclusions.platforms, ["hid_null"]);
             }
             if (settings.release) {
                 exclusions.settings.push("Release");
-                add_excluded_libs(exclusions.platforms, ["engine"]);
-                add_excluded_symbols(exclusions.platforms, []);
-                add_libs(exclusions.platforms, ["engine_release"]);
+                push_excluded_libs(exclusions.platforms, ["engine"]);
+                unshift_libs(exclusions.platforms, ["engine_release"]);
             }
             else {
                 exclusions.settings.push("Debug");
-                add_excluded_libs(exclusions.platforms, ["engine"]);
-                add_excluded_symbols(exclusions.platforms, []);
-                add_libs(exclusions.platforms, ["engine"]);
+                push_excluded_libs(exclusions.platforms, ["engine"]);
+                unshift_libs(exclusions.platforms, ["engine"]);
             }
 
             var manifest = "# App manifest generated {0}\n".format(new Date());
