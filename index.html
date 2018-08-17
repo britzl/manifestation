@@ -177,6 +177,26 @@
         }
     </script>
 
+    <script src="js/toast.min.js"></script>
+    <script>
+        // https://github.com/mlcheng/js-toast/
+        function toast(text) {
+            var options = {
+                style: {
+                    main: {
+                        background: "#333",
+                        color: "#FFF",
+                        'box-shadow': '0 0 50px rgba(0, 0, 0, .7)'
+                    }
+                },
+                settings: {
+                    duration: 1500
+                }
+            };
+            iqwerty.toast.Toast(text, options);
+        }
+    </script>
+
     <script>
         function copy_to_clipboard() {
             document.getElementById("manifest").select();
@@ -184,8 +204,15 @@
                 var successful = document.execCommand('copy');
                 var msg = successful ? 'successful' : 'unsuccessful';
                 console.log('Copying text command was ' + msg);
+                if (successful) {
+                    toast('Copied!');
+                }
+                else {
+                    toast('Oops, unable to copy');
+                }
             } catch (err) {
                 console.log('Oops, unable to copy');
+                toast('Oops, unable to copy');
             }
             // deselect
             if (document.selection) {
