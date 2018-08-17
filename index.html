@@ -196,6 +196,22 @@
             }
         }
     </script>
+
+    <script>
+        // https://stackoverflow.com/a/18197341/1266551
+        function download_as_file() {
+            var text = document.getElementById("manifest").value;
+            var filename = "generated.appmanifest";
+
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    </script>
 </head>
 
 <body onload="update_manifest();">
@@ -207,7 +223,7 @@
             <div style="margin-top: 5%">
                 <h3>Defold App Manifest generator</h3>
                 <p>This tool generates a Defold App Manifest that can be used to build a custom engine.</p>
-                <p>Save the generated file with the .appmanifest extension to a location in your project and reference it in the App Manifest field of the Native Extension section in game.project.</p>
+                <p>Download the generated file or copy and paste into a file with the <span style="font-family: monospace;">.appmanifest</span> extension. Save the file to a location in your project and reference it in the <a href="https://www.defold.com/manuals/project-settings/#_native_extension" target="_blank">App Manifest field of the Native Extension section</a> in game.project.</p>
             </div>
         </div>
         <div class="row">
@@ -228,7 +244,8 @@
             <div class="nine columns">
                 <h4>Manifest</h4>
                 <textarea id="manifest" rows="20" cols="80" readonly style="height: auto;">Generated app manifest goes here</textarea>
-                <button class="js-textareacopybtn" style="vertical-align:top;" onclick="copy_to_clipboard()">Copy to clipboard</button>
+                <button style="vertical-align:top;" onclick="download_as_file()">Download</button>
+                <button style="vertical-align:top;" onclick="copy_to_clipboard()">Copy to clipboard</button>
             </div>
         </div>
     </div>
