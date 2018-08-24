@@ -34,6 +34,35 @@
         }
     </style>
 
+    <!-- https://www.w3schools.com/css/css_tooltip.asp -->
+    <style>
+        /* Tooltip container */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Tooltip text */
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 240px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 20px;
+            border-radius: 6px;
+
+            /* Position the tooltip text - see examples below! */
+            position: absolute;
+            z-index: 1;
+        }
+
+        /* Show the tooltip text when you mouse over the tooltip container */
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+    </style>
+
     <script>
         // https://stackoverflow.com/a/4673436
         if (!String.prototype.format) {
@@ -99,6 +128,7 @@
                 graphics: document.getElementById("graphics").checked,
                 headless: document.getElementById("headless").checked,
                 input: document.getElementById("input").checked,
+                use_clang: document.getElementById("use_clang").checked,
             }
 
             var excluded
@@ -160,6 +190,9 @@
                 push_excluded_libs(exclusions.platforms, ["engine"]);
                 unshift_libs(exclusions.platforms, ["engine"]);
             }
+            if (settings.use_clang) {
+                exclusions.settings.push("Clang");
+            }
 
             var manifest = "# App manifest generated {0}\n".format(new Date());
             manifest += "# Settings: {0}\n".format(exclusions.settings.join());
@@ -170,6 +203,9 @@
                 manifest += "            excludeLibs: [{0}]\n".format(exclusions.platforms[platform].excludeLibs.join());
                 manifest += "            excludeSymbols: [{0}]\n".format(exclusions.platforms[platform].excludeSymbols.join());
                 manifest += "            libs: [{0}]\n".format(exclusions.platforms[platform].libs.join());
+                if (is_windows(platform) && settings.use_clang)  {
+                    manifest += "            use-clang: true\n";
+                }
                 manifest += "\n";
             });
 
@@ -257,15 +293,47 @@
             <div class="three columns">
                 <form>
                     <h4>Settings</h4>
-                    <label><input id="physics" type="checkbox" onchange="update_manifest()"/>Exclude Physics</label>
-                    <label><input id="record" type="checkbox" onchange="update_manifest()"/>Exclude Record</label>
-                    <label><input id="profiler" type="checkbox" onchange="update_manifest()"/>Exclude Profiler</label>
-                    <label><input id="facebook" type="checkbox" onchange="update_manifest()"/>Exclude Facebook</label>
-                    <label><input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound</label>
-                    <label><input id="graphics" type="checkbox" onchange="update_manifest()"/>Exclude Graphics</label>
-                    <label><input id="input" type="checkbox" onchange="update_manifest()"/>Exclude Input</label>
-                    <label><input id="release" type="checkbox" onchange="update_manifest()"/>Release</label>
-                    <label><input id="headless" type="checkbox" onchange="update_manifest()"/>Make headless</label>
+                    <label><input id="physics" type="checkbox" onchange="update_manifest()"/>Exclude Physics
+                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">Remove both Box2D and Bullet</span>
+                        </div>
+                    </label>
+                    <label><input id="record" type="checkbox" onchange="update_manifest()"/>Exclude Record
+                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">Remove the video recording capabilities (available on desktop builds only)</span>
+                        </div>
+                    </label>
+                    <label><input id="profiler" type="checkbox" onchange="update_manifest()"/>Exclude Profiler
+                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">Remove the on-screen and web profiler</span>
+                        </div>
+                    </label>
+                    <label><input id="facebook" type="checkbox" onchange="update_manifest()"/>Exclude Facebook
+                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">Remove the Facebook SDK (available on mobile and HTML5 builds)</span>
+                        </div>
+                    </label>
+                    <label><input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound
+                    </label>
+                    <label><input id="graphics" type="checkbox" onchange="update_manifest()"/>Exclude Graphics
+                    </label>
+                    <label><input id="input" type="checkbox" onchange="update_manifest()"/>Exclude Input
+                    </label>
+                    <label><input id="release" type="checkbox" onchange="update_manifest()"/>Release
+                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">Force a release build (no logs to console and no reverse hash lookup)</span>
+                        </div>
+                    </label>
+                    <label><input id="headless" type="checkbox" onchange="update_manifest()"/>Make headless
+                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">Create a headless engine version (no sound, no graphics and no input)</span>
+                        </div>
+                    </label>
+                    <label><input id="use_clang" type="checkbox" onchange="update_manifest()"/>Use Clang
+                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">Use clang when building Windows versions of the engine. This will reduce build times significantly when using native extensions</span>
+                        </div>
+                    </label>
                 </form>
             </div>
             <div class="nine columns">
