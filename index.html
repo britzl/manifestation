@@ -32,6 +32,10 @@
         {
            font-family: monospace;
         }
+
+        .osicon {
+            margin-left: 5px;
+        }
     </style>
 
     <!-- https://www.w3schools.com/css/css_tooltip.asp -->
@@ -88,25 +92,32 @@
             return is_windows(platform) ? ('"' + "lib" + name + '.lib"') : ('"' + name + '"');
         }
 
-        function push_excluded_libs(exclusions, names) {
+        function push_excluded_libs(platforms, exclusions, names) {
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
                     exclusions[platform].excludeLibs.push(platformify_excluded_lib(platform, name));
                 });
             });
         }
-        function push_excluded_symbols(exclusions, names) {
+        function push_excluded_symbols(platforms, exclusions, names) {
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
                     exclusions[platform].excludeSymbols.push('"' + name + '"');
                 });
             });
         }
-        function push_libs(exclusions, names) {
+        function push_libs(platforms, exclusions, names) {
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
                     exclusions[platform].libs.push(platformify_lib(platform, name));
                 });
+            });
+        }
+        function push_flags(platforms, exclusions, names) {
+            names.forEach(function(name) {
+                platforms.forEach(function(platform) {
+                    exclusions[platform].flags.push('"' + name + '"');
+                })
             });
         }
         function unshift_libs(exclusions, names) {
@@ -129,6 +140,7 @@
                 headless: document.getElementById("headless").checked,
                 input: document.getElementById("input").checked,
                 use_clang: document.getElementById("use_clang").checked,
+                hide_console: document.getElementById("hide_console").checked,
             }
 
             var excluded
@@ -142,56 +154,61 @@
                     excludeLibs: [],
                     excludeSymbols: [],
                     libs: [],
+                    flags: [],
                 };
             });
 
             if (settings.physics) {
                 exclusions.settings.push("Physics");
-                push_excluded_libs(exclusions.platforms, ["BulletDynamics", "BulletCollision", "LinearMath", "Box2D", "physics" ]);
-                push_libs(exclusions.platforms, [ "physics_null" ]);
+                push_excluded_libs(platforms, exclusions.platforms, ["BulletDynamics", "BulletCollision", "LinearMath", "Box2D", "physics" ]);
+                push_libs(platforms, exclusions.platforms, [ "physics_null" ]);
             }
             if (settings.record || settings.headless) {
                 exclusions.settings.push("Record");
-                push_excluded_libs(exclusions.platforms, [ "record", "vpx" ]);
-                push_libs(exclusions.platforms, [ "record_null" ]);
+                push_excluded_libs(platforms, exclusions.platforms, [ "record", "vpx" ]);
+                push_libs(desktop_platforms, exclusions.platforms, [ "record_null" ]);
             }
             if (settings.profiler) {
                 exclusions.settings.push("Profiler");
-                push_excluded_libs(exclusions.platforms, [ "profilerext" ]);
-                push_excluded_symbols(exclusions.platforms, [ "ProfilerExt" ]);
+                push_excluded_libs(platforms, exclusions.platforms, [ "profilerext" ]);
+                push_excluded_symbols(platforms, exclusions.platforms, [ "ProfilerExt" ]);
             }
             if (settings.facebook) {
                 exclusions.settings.push("Facebook");
-                push_excluded_symbols(exclusions.platforms, [ "FacebookExt" ]);
+                push_excluded_symbols(platforms, exclusions.platforms, [ "FacebookExt" ]);
             }
             if (settings.sound || settings.headless) {
                 exclusions.settings.push("Sound");
-                push_excluded_libs(exclusions.platforms, ["sound", "tremolo"]);
-                push_excluded_symbols(exclusions.platforms, ["DefaultSoundDevice", "AudioDecoderWav", "AudioDecoderStbVorbis", "AudioDecoderTremolo"]);
-                push_libs(exclusions.platforms, ["sound_null"]);
+                push_excluded_libs(platforms, exclusions.platforms, ["sound", "tremolo"]);
+                push_excluded_symbols(platforms, exclusions.platforms, ["DefaultSoundDevice", "AudioDecoderWav", "AudioDecoderStbVorbis", "AudioDecoderTremolo"]);
+                push_libs(platforms, exclusions.platforms, ["sound_null"]);
             }
             if (settings.graphics || settings.headless) {
                 exclusions.settings.push("Graphics");
-                push_excluded_libs(exclusions.platforms, ["graphics"]);
-                push_libs(exclusions.platforms, ["graphics_null"]);
+                push_excluded_libs(platforms, exclusions.platforms, ["graphics"]);
+                push_libs(platforms, exclusions.platforms, ["graphics_null"]);
             }
             if (settings.input || settings.headless) {
                 exclusions.settings.push("Input");
-                push_excluded_libs(exclusions.platforms, ["hid"]);
-                push_libs(exclusions.platforms, ["hid_null"]);
+                push_excluded_libs(platforms, exclusions.platforms, ["hid"]);
+                push_libs(platforms, exclusions.platforms, ["hid_null"]);
             }
             if (settings.release) {
                 exclusions.settings.push("Release");
-                push_excluded_libs(exclusions.platforms, ["engine"]);
+                push_excluded_libs(platforms, exclusions.platforms, ["engine"]);
                 unshift_libs(exclusions.platforms, ["engine_release"]);
             }
             else {
                 exclusions.settings.push("Debug");
-                push_excluded_libs(exclusions.platforms, ["engine"]);
+                push_excluded_libs(platforms, exclusions.platforms, ["engine"]);
                 unshift_libs(exclusions.platforms, ["engine"]);
             }
             if (settings.use_clang) {
                 exclusions.settings.push("Clang");
+            }
+            if (settings.hide_console) {
+                exclusions.settings.push("HideConsole");
+                push_flags(["x86-win32", "x86_64-win32"], exclusions.platforms, [settings.use_clang ? "-Wl,/subsystem:windows" : "/subsystem:windows"])
             }
 
             var manifest = "# App manifest generated {0}\n".format(new Date());
@@ -203,6 +220,7 @@
                 manifest += "            excludeLibs: [{0}]\n".format(exclusions.platforms[platform].excludeLibs.join());
                 manifest += "            excludeSymbols: [{0}]\n".format(exclusions.platforms[platform].excludeSymbols.join());
                 manifest += "            libs: [{0}]\n".format(exclusions.platforms[platform].libs.join());
+                manifest += "            flags: [{0}]\n".format(exclusions.platforms[platform].flags.join());
                 if (is_windows(platform) && settings.use_clang)  {
                     manifest += "            use-clang: true\n";
                 }
@@ -281,7 +299,7 @@
 
     <!-- Primary Page Layout
     –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <div class="container">
+    <div class="container" style='position:relative;'>
         <div class="row">
             <div style="margin-top: 5%">
                 <h3>Defold App Manifest generator</h3>
@@ -299,8 +317,13 @@
                         </div>
                     </label>
                     <label><input id="record" type="checkbox" onchange="update_manifest()"/>Exclude Record
-                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Remove the video recording capabilities (available on desktop builds only)</span>
+                        <div class="tooltip">
+                            <img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">Remove the video recording capabilities</br>
+                                <img src="images/windows_w.png" class="osicon"/>
+                                <img src="images/osx_w.png" class="osicon"/>
+                                <img src="images/linux_w.png" class="osicon"/>
+                            </span>
                         </div>
                     </label>
                     <label><input id="profiler" type="checkbox" onchange="update_manifest()"/>Exclude Profiler
@@ -310,7 +333,11 @@
                     </label>
                     <label><input id="facebook" type="checkbox" onchange="update_manifest()"/>Exclude Facebook
                         <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Remove the Facebook SDK (available on mobile and HTML5 builds)</span>
+                            <span class="tooltiptext">Remove the Facebook SDK</br>
+                                <img src="images/ios_w.png" class="osicon"/>
+                                <img src="images/android_w.png" class="osicon"/>
+                                <img src="images/html5_w.png" class="osicon"/>
+                            </span>
                         </div>
                     </label>
                     <label><input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound
@@ -331,7 +358,14 @@
                     </label>
                     <label><input id="use_clang" type="checkbox" onchange="update_manifest()" checked/>Use Clang
                         <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Use clang when building Windows versions of the engine. This will reduce build times significantly when using native extensions. Uncheck if you have problems building extensions for Windows. Read more <a href="https://forum.defold.com/t/native-extensions-win32-clang/28084/2" target="_blank">here</a>.</span>
+                            <span class="tooltiptext">Use clang when building Windows versions of the engine. This will reduce build times significantly when using native extensions. Uncheck if you have problems building extensions for Windows. Read more <a href="https://forum.defold.com/t/native-extensions-win32-clang/28084/2" target="_blank">here</a>.</br>
+                            <img src="images/windows_w.png" class="osicon"/></span>
+                        </div>
+                    </label>
+                    <label><input id="hide_console" type="checkbox" onchange="update_manifest()"/>Hide Console
+                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">Hide the console window when the app is launched.</br>
+                            <img src="images/windows_w.png" class="osicon"/</span>
                         </div>
                     </label>
                 </form>
@@ -341,6 +375,13 @@
                 <textarea id="manifest" rows="20" cols="80" readonly style="height: auto;">Generated app manifest goes here</textarea>
                 <button style="vertical-align:top;" onclick="download_as_file()">Download</button>
                 <button style="vertical-align:top;" onclick="copy_to_clipboard()">Copy to clipboard</button>
+            </div>
+        </div>
+        <div class="row">
+            <div style="margin-top: 15%">
+                <p>
+                    Site template by <a href="http://getskeleton.com/" target="_blank">Skeleton</a> - Icons by <a href="https://www.flaticon.com/" target="_blank">FlatIcon</a><br/>
+                </p>
             </div>
         </div>
     </div>
