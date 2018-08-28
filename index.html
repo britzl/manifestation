@@ -113,10 +113,10 @@
                 });
             });
         }
-        function push_flags(platforms, exclusions, names) {
+        function push_link_flags(platforms, exclusions, names) {
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
-                    exclusions[platform].flags.push('"' + name + '"');
+                    exclusions[platform].linkFlags.push('"' + name + '"');
                 })
             });
         }
@@ -154,7 +154,7 @@
                     excludeLibs: [],
                     excludeSymbols: [],
                     libs: [],
-                    flags: [],
+                    linkFlags: [],
                 };
             });
 
@@ -208,7 +208,7 @@
             }
             if (settings.hide_console) {
                 exclusions.settings.push("HideConsole");
-                push_flags(["x86-win32", "x86_64-win32"], exclusions.platforms, [settings.use_clang ? "-Wl,/subsystem:windows" : "/subsystem:windows"])
+                push_link_flags(["x86-win32", "x86_64-win32"], exclusions.platforms, [settings.use_clang ? "-Wl,/subsystem:windows" : "/subsystem:windows"])
             }
 
             var manifest = "# App manifest generated {0}\n".format(new Date());
@@ -220,7 +220,7 @@
                 manifest += "            excludeLibs: [{0}]\n".format(exclusions.platforms[platform].excludeLibs.join());
                 manifest += "            excludeSymbols: [{0}]\n".format(exclusions.platforms[platform].excludeSymbols.join());
                 manifest += "            libs: [{0}]\n".format(exclusions.platforms[platform].libs.join());
-                manifest += "            flags: [{0}]\n".format(exclusions.platforms[platform].flags.join());
+                manifest += "            linkFlags: [{0}]\n".format(exclusions.platforms[platform].linkFlags.join());
                 if (is_windows(platform) && settings.use_clang)  {
                     manifest += "            use-clang: true\n";
                 }
