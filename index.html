@@ -166,7 +166,7 @@
             if (settings.record || settings.headless) {
                 exclusions.settings.push("Record");
                 push_excluded_libs(platforms, exclusions.platforms, [ "record", "vpx" ]);
-                push_libs(desktop_platforms, exclusions.platforms, [ "record_null" ]);
+                push_libs(platforms, exclusions.platforms, [ "record_null" ]);
             }
             if (settings.profiler) {
                 exclusions.settings.push("Profiler");
