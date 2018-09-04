@@ -198,11 +198,6 @@
                 push_excluded_libs(platforms, exclusions.platforms, ["engine"]);
                 unshift_libs(exclusions.platforms, ["engine_release"]);
             }
-            else {
-                exclusions.settings.push("Debug");
-                push_excluded_libs(platforms, exclusions.platforms, ["engine"]);
-                unshift_libs(exclusions.platforms, ["engine"]);
-            }
             if (settings.use_clang) {
                 exclusions.settings.push("Clang");
             }
