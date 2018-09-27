@@ -78,6 +78,15 @@
             };
         }
 
+        var lib_name_lookup = {
+            "x86-win32": {
+                "vpx": "vpx"
+            },
+            "x86_64-win32": {
+                "vpx": "vpx"
+            },
+        }
+
         var platforms = [ "x86_64-osx", "x86_64-linux", "js-web", "x86-win32", "x86_64-win32", "armv7-android", "armv7-ios", "arm64-ios" ]
 
         function is_windows(platform) {
@@ -85,10 +94,16 @@
         }
 
         function platformify_excluded_lib(platform, name) {
+            if (lib_name_lookup[platform] && lib_name_lookup[platform][name]) {
+                return '"' + lib_name_lookup[platform][name] + '"'
+            }
             return is_windows(platform) ? ('"' + "lib" + name + '"') : ('"' + name + '"');
         }
 
         function platformify_lib(platform, name) {
+            if (lib_name_lookup[platform] && lib_name_lookup[platform][name]) {
+                return '"' + lib_name_lookup[platform][name] + '.lib"'
+            }
             return is_windows(platform) ? ('"' + "lib" + name + '.lib"') : ('"' + name + '"');
         }
 
