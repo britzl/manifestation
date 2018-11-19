@@ -191,7 +191,6 @@
                 gameroom: document.getElementById("gameroom").checked,
                 sound: document.getElementById("sound").checked,
                 input: document.getElementById("input").checked,
-                hide_console: document.getElementById("hide_console").checked,
             }
 
             var excluded
@@ -262,10 +261,6 @@
                 exclusions.settings.push("Input");
                 push_excluded_libs(PLATFORMS, exclusions.platforms, ["hid"]);
                 push_libs(PLATFORMS, exclusions.platforms, ["hid_null"]);
-            }
-            if (settings.hide_console) {
-                exclusions.settings.push("HideConsole");
-                push_link_flags(WINDOWS, exclusions.platforms, [settings.use_clang ? "-Wl,/subsystem:windows" : "/subsystem:windows"])
             }
 
             var manifest = "# App manifest generated {0}\n".format(new Date());
@@ -413,12 +408,6 @@
                     </label>
                     <label><input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound</label>
                     <label><input id="input" type="checkbox" onchange="update_manifest()"/>Exclude Input</label>
-                    <label><input id="hide_console" type="checkbox" onchange="update_manifest()"/>Hide Console
-                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Hide the console window when the app is launched.</br>
-                            <img src="images/windows_w.png" class="osicon"/</span>
-                        </div>
-                    </label>
                 </form>
             </div>
             <div class="nine columns">
