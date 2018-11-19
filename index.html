@@ -80,17 +80,41 @@
 
         var lib_name_lookup = {
             "x86-win32": {
-                "vpx": "vpx"
+                "vpx": "vpx",
+                "gameroomext": "gameroomext",
+                "facebookext": "libfacebookext.lib",
             },
             "x86_64-win32": {
-                "vpx": "vpx"
+                "vpx": "vpx",
+                "gameroomext": "gameroomext",
+                "facebookext": "libfacebookext.lib",
             },
         }
 
-        var platforms = [ "x86_64-osx", "x86_64-linux", "js-web", "wasm-web", "x86-win32", "x86_64-win32", "armv7-android", "armv7-ios", "arm64-ios" ]
+        var PLATFORMS = [ "x86_64-osx", "x86_64-linux", "js-web", "wasm-web", "x86-win32", "x86_64-win32", "armv7-android", "armv7-ios", "arm64-ios" ]
+        var WINDOWS = [ "x86-win32", "x86_64-win32" ]
+        var WEB = [ "js-web", "wasm-web" ]
+        var ANDROID = [ "armv7-android" ]
+
+        function find_in(list, what) {
+            for (var i=0; i < list.length; i++) {
+                if (list[i] == what) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         function is_windows(platform) {
-            return platform == "x86-win32" || platform == "x86_64-win32"
+            return find_in(WINDOWS, platform);
+        }
+
+        function is_web(platform) {
+            return find_in(WEB, platform);
+        }
+
+        function is_android(platform) {
+            return find_in(ANDROID, platform);
         }
 
         function platformify_excluded_lib(platform, name) {
@@ -111,6 +135,20 @@
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
                     exclusions[platform].excludeLibs.push(platformify_excluded_lib(platform, name));
+                });
+            });
+        }
+        function push_excluded_js_libs(platforms, exclusions, names) {
+            names.forEach(function(name) {
+                platforms.forEach(function(platform) {
+                    exclusions[platform].excludeJsLibs.push('"' + name + '"');
+                });
+            });
+        }
+        function push_excluded_jars(platforms, exclusions, names) {
+            names.forEach(function(name) {
+                platforms.forEach(function(platform) {
+                    exclusions[platform].excludeJars.push('"' + name + '"');
                 });
             });
         }
@@ -145,16 +183,14 @@
 
         function update_manifest() {
             var settings = {
-                physics: document.getElementById("physics").checked,
+                physics2d: document.getElementById("physics2d").checked,
+                physics3d: document.getElementById("physics3d").checked,
                 record: document.getElementById("record").checked,
                 profiler: document.getElementById("profiler").checked,
                 facebook: document.getElementById("facebook").checked,
-                release: document.getElementById("release").checked,
+                gameroom: document.getElementById("gameroom").checked,
                 sound: document.getElementById("sound").checked,
-                graphics: document.getElementById("graphics").checked,
-                headless: document.getElementById("headless").checked,
                 input: document.getElementById("input").checked,
-                use_clang: document.getElementById("use_clang").checked,
                 hide_console: document.getElementById("hide_console").checked,
             }
 
@@ -163,77 +199,91 @@
                 settings: [],
                 platforms: [],
             };
-            platforms.forEach(function(platform) {
+            PLATFORMS.forEach(function(platform) {
                 exclusions.platforms[platform] = {
                     id: platform,
                     excludeLibs: [],
+                    excludeJsLibs: [],
+                    excludeJars: [],
                     excludeSymbols: [],
                     libs: [],
                     linkFlags: [],
                 };
             });
 
-            if (settings.physics) {
-                exclusions.settings.push("Physics");
-                push_excluded_libs(platforms, exclusions.platforms, ["BulletDynamics", "BulletCollision", "LinearMath", "Box2D", "physics" ]);
-                push_libs(platforms, exclusions.platforms, [ "physics_null" ]);
+            if (settings.physics2d || settings.physics3d) {
+                if (settings.physics2d) {
+                    exclusions.settings.push("Physics2D");
+                }
+                if (settings.physics3d) {
+                    exclusions.settings.push("Physics3D");
+                }
+
+                push_excluded_libs(PLATFORMS, exclusions.platforms, ["physics" ]);
+                if (settings.physics2d && settings.physics3d) {
+                    push_libs(PLATFORMS, exclusions.platforms, [ "physics_null" ]);
+                }
+                else if (settings.physics2d) {
+                    push_libs(PLATFORMS, exclusions.platforms, [ "physics_3d" ]);
+                }
+                else if (settings.physics3d) {
+                    push_libs(PLATFORMS, exclusions.platforms, [ "physics_2d" ]);
+                }
             }
-            if (settings.record || settings.headless) {
+            if (settings.record) {
                 exclusions.settings.push("Record");
-                push_excluded_libs(platforms, exclusions.platforms, [ "record", "vpx" ]);
-                push_libs(platforms, exclusions.platforms, [ "record_null" ]);
+                push_excluded_libs(PLATFORMS, exclusions.platforms, [ "record", "vpx" ]);
+                push_libs(PLATFORMS, exclusions.platforms, [ "record_null" ]);
             }
             if (settings.profiler) {
                 exclusions.settings.push("Profiler");
-                push_excluded_libs(platforms, exclusions.platforms, [ "profilerext" ]);
-                push_excluded_symbols(platforms, exclusions.platforms, [ "ProfilerExt" ]);
+                push_excluded_libs(PLATFORMS, exclusions.platforms, [ "profilerext" ]);
+                push_excluded_symbols(PLATFORMS, exclusions.platforms, [ "ProfilerExt" ]);
             }
             if (settings.facebook) {
                 exclusions.settings.push("Facebook");
-                push_excluded_symbols(platforms, exclusions.platforms, [ "FacebookExt" ]);
+                push_excluded_libs(PLATFORMS, exclusions.platforms, [ "facebookext" ]);
+                push_excluded_symbols(PLATFORMS, exclusions.platforms, [ "FacebookExt" ]);
+                push_excluded_js_libs(WEB, exclusions.platforms, [ "facebook", "facebook_iap" ])
+                push_excluded_jars(ANDROID, exclusions.platforms, [ "(.*)/facebooksdk.jar", "(.*)/facebook_android.jar" ])
             }
-            if (settings.sound || settings.headless) {
+            if (settings.gameroom) {
+                exclusions.settings.push("Gameroom");
+                push_excluded_libs(WINDOWS, exclusions.platforms, ["gameroomext"]);
+                push_excluded_symbols(WINDOWS, exclusions.platforms, [ "GameroomExt" ]);
+            }
+            if (settings.sound) {
                 exclusions.settings.push("Sound");
-                push_excluded_libs(platforms, exclusions.platforms, ["sound", "tremolo"]);
-                push_excluded_symbols(platforms, exclusions.platforms, ["DefaultSoundDevice", "AudioDecoderWav", "AudioDecoderStbVorbis", "AudioDecoderTremolo"]);
-                push_libs(platforms, exclusions.platforms, ["sound_null"]);
+                push_excluded_libs(PLATFORMS, exclusions.platforms, ["sound", "tremolo"]);
+                push_excluded_symbols(PLATFORMS, exclusions.platforms, ["DefaultSoundDevice", "AudioDecoderWav", "AudioDecoderStbVorbis", "AudioDecoderTremolo"]);
+                push_libs(PLATFORMS, exclusions.platforms, ["sound_null"]);
             }
-            if (settings.graphics || settings.headless) {
-                exclusions.settings.push("Graphics");
-                push_excluded_libs(platforms, exclusions.platforms, ["graphics"]);
-                push_libs(platforms, exclusions.platforms, ["graphics_null"]);
-            }
-            if (settings.input || settings.headless) {
+            if (settings.input) {
                 exclusions.settings.push("Input");
-                push_excluded_libs(platforms, exclusions.platforms, ["hid"]);
-                push_libs(platforms, exclusions.platforms, ["hid_null"]);
-            }
-            if (settings.release) {
-                exclusions.settings.push("Release");
-                push_excluded_libs(platforms, exclusions.platforms, ["engine"]);
-                unshift_libs(exclusions.platforms, ["engine_release"]);
-            }
-            if (settings.use_clang) {
-                exclusions.settings.push("Clang");
+                push_excluded_libs(PLATFORMS, exclusions.platforms, ["hid"]);
+                push_libs(PLATFORMS, exclusions.platforms, ["hid_null"]);
             }
             if (settings.hide_console) {
                 exclusions.settings.push("HideConsole");
-                push_link_flags(["x86-win32", "x86_64-win32"], exclusions.platforms, [settings.use_clang ? "-Wl,/subsystem:windows" : "/subsystem:windows"])
+                push_link_flags(WINDOWS, exclusions.platforms, [settings.use_clang ? "-Wl,/subsystem:windows" : "/subsystem:windows"])
             }
 
             var manifest = "# App manifest generated {0}\n".format(new Date());
             manifest += "# Settings: {0}\n".format(exclusions.settings.join());
             manifest += "platforms:\n";
-            platforms.forEach(function(platform) {
+            PLATFORMS.forEach(function(platform) {
                 manifest += "    {0}:\n".format(platform);
                 manifest += "        context:\n";
                 manifest += "            excludeLibs: [{0}]\n".format(exclusions.platforms[platform].excludeLibs.join());
+                if (is_web(platform)) {
+                    manifest += "            excludeJsLibs: [{0}]\n".format(exclusions.platforms[platform].excludeJsLibs.join());
+                }
+                if (is_android(platform)) {
+                    manifest += "            excludeJars: [{0}]\n".format(exclusions.platforms[platform].excludeJars.join());
+                }
                 manifest += "            excludeSymbols: [{0}]\n".format(exclusions.platforms[platform].excludeSymbols.join());
                 manifest += "            libs: [{0}]\n".format(exclusions.platforms[platform].libs.join());
                 manifest += "            linkFlags: [{0}]\n".format(exclusions.platforms[platform].linkFlags.join());
-                if (is_windows(platform) && settings.use_clang)  {
-                    manifest += "            use-clang: true\n";
-                }
                 manifest += "\n";
             });
 
@@ -321,9 +371,14 @@
             <div class="three columns">
                 <form>
                     <h4>Settings</h4>
-                    <label><input id="physics" type="checkbox" onchange="update_manifest()"/>Exclude Physics
+                    <label><input id="physics2d" type="checkbox" onchange="update_manifest()"/>Exclude Physics 2D
                         <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Remove both Box2D and Bullet</span>
+                            <span class="tooltiptext">Remove 2D physics (Box2D)</span>
+                        </div>
+                    </label>
+                    <label><input id="physics3d" type="checkbox" onchange="update_manifest()"/>Exclude Physics 3D
+                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">Remove 3D physics (Bullet)</span>
                         </div>
                     </label>
                     <label><input id="record" type="checkbox" onchange="update_manifest()"/>Exclude Record
@@ -350,28 +405,14 @@
                             </span>
                         </div>
                     </label>
-                    <label><input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound
-                    </label>
-                    <label><input id="graphics" type="checkbox" onchange="update_manifest()"/>Exclude Graphics
-                    </label>
-                    <label><input id="input" type="checkbox" onchange="update_manifest()"/>Exclude Input
-                    </label>
-                    <label><input id="release" type="checkbox" onchange="update_manifest()"/>Release
+                    <label><input id="gameroom" type="checkbox" onchange="update_manifest()"/>Exclude Gameroom
                         <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Force a release build (no logs to console and no reverse hash lookup)</span>
+                            <span class="tooltiptext">Remove Facebook Gameroom.</br>
+                            <img src="images/windows_w.png" class="osicon"/</span>
                         </div>
                     </label>
-                    <label><input id="headless" type="checkbox" onchange="update_manifest()"/>Make headless
-                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Create a headless engine version (no sound, no graphics and no input)</span>
-                        </div>
-                    </label>
-                    <label><input id="use_clang" type="checkbox" onchange="update_manifest()" checked/>Use Clang
-                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Use clang when building Windows versions of the engine. This will reduce build times significantly when using native extensions. Uncheck if you have problems building extensions for Windows. Read more <a href="https://forum.defold.com/t/native-extensions-win32-clang/28084/2" target="_blank">here</a>.</br>
-                            <img src="images/windows_w.png" class="osicon"/></span>
-                        </div>
-                    </label>
+                    <label><input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound</label>
+                    <label><input id="input" type="checkbox" onchange="update_manifest()"/>Exclude Input</label>
                     <label><input id="hide_console" type="checkbox" onchange="update_manifest()"/>Hide Console
                         <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
                             <span class="tooltiptext">Hide the console window when the app is launched.</br>
