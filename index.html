@@ -221,12 +221,15 @@
                 push_excluded_libs(PLATFORMS, exclusions.platforms, ["physics" ]);
                 if (settings.physics2d && settings.physics3d) {
                     push_libs(PLATFORMS, exclusions.platforms, [ "physics_null" ]);
+                    push_excluded_libs(PLATFORMS, exclusions.platforms, [ "LinearMath", "BulletDynamics", "BulletCollision", "Box2D" ]);
                 }
                 else if (settings.physics2d) {
                     push_libs(PLATFORMS, exclusions.platforms, [ "physics_3d" ]);
+                    push_excluded_libs(PLATFORMS, exclusions.platforms, [ "Box2D" ]);
                 }
                 else if (settings.physics3d) {
                     push_libs(PLATFORMS, exclusions.platforms, [ "physics_2d" ]);
+                    push_excluded_libs(PLATFORMS, exclusions.platforms, [ "LinearMath", "BulletDynamics", "BulletCollision" ]);
                 }
             }
             if (settings.record) {
