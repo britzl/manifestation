@@ -239,6 +239,7 @@
             }
             if (settings.profiler) {
                 exclusions.settings.push("Profiler");
+                push_libs(PLATFORMS, exclusions.platforms, [ "profiler_null" ]);
                 push_excluded_libs(PLATFORMS, exclusions.platforms, [ "profilerext" ]);
                 push_excluded_symbols(PLATFORMS, exclusions.platforms, [ "ProfilerExt" ]);
             }
