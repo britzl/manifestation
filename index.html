@@ -247,7 +247,7 @@
                 exclusions.settings.push("Facebook");
                 push_excluded_libs(PLATFORMS, exclusions.platforms, [ "facebookext" ]);
                 push_excluded_symbols(PLATFORMS, exclusions.platforms, [ "FacebookExt" ]);
-                push_excluded_js_libs(WEB, exclusions.platforms, [ "facebook", "facebook_iap" ])
+                push_excluded_js_libs(WEB, exclusions.platforms, [ "facebook" ])
                 push_excluded_jars(ANDROID, exclusions.platforms, [ "(.*)/facebooksdk.jar", "(.*)/facebook_android.jar" ])
             }
             if (settings.gameroom) {
