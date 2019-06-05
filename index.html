@@ -82,12 +82,10 @@
             "x86-win32": {
                 "vpx": "vpx",
                 "gameroomext": "gameroomext",
-                "facebookext": "libfacebookext.lib",
             },
             "x86_64-win32": {
                 "vpx": "vpx",
                 "gameroomext": "gameroomext",
-                "facebookext": "libfacebookext.lib",
             },
         }
 
@@ -187,7 +185,6 @@
                 physics3d: document.getElementById("physics3d").checked,
                 record: document.getElementById("record").checked,
                 profiler: document.getElementById("profiler").checked,
-                facebook: document.getElementById("facebook").checked,
                 gameroom: document.getElementById("gameroom").checked,
                 sound: document.getElementById("sound").checked,
                 input: document.getElementById("input").checked,
@@ -242,13 +239,6 @@
                 push_libs(PLATFORMS, exclusions.platforms, [ "profilerext_null" ]);
                 push_excluded_libs(PLATFORMS, exclusions.platforms, [ "profilerext" ]);
                 push_excluded_symbols(PLATFORMS, exclusions.platforms, [ "ProfilerExt" ]);
-            }
-            if (settings.facebook) {
-                exclusions.settings.push("Facebook");
-                push_excluded_libs(PLATFORMS, exclusions.platforms, [ "facebookext" ]);
-                push_excluded_symbols(PLATFORMS, exclusions.platforms, [ "FacebookExt" ]);
-                push_excluded_js_libs(WEB, exclusions.platforms, [ "facebook" ])
-                push_excluded_jars(ANDROID, exclusions.platforms, [ "(.*)/facebooksdk.jar", "(.*)/facebook_android.jar" ])
             }
             if (settings.gameroom) {
                 exclusions.settings.push("Gameroom");
@@ -393,15 +383,6 @@
                     <label><input id="profiler" type="checkbox" onchange="update_manifest()"/>Exclude Profiler
                         <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
                             <span class="tooltiptext">Remove the on-screen and web profiler</span>
-                        </div>
-                    </label>
-                    <label><input id="facebook" type="checkbox" onchange="update_manifest()"/>Exclude Facebook
-                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Remove the Facebook SDK</br>
-                                <img src="images/ios_w.png" class="osicon"/>
-                                <img src="images/android_w.png" class="osicon"/>
-                                <img src="images/html5_w.png" class="osicon"/>
-                            </span>
                         </div>
                     </label>
                     <label><input id="gameroom" type="checkbox" onchange="update_manifest()"/>Exclude Gameroom
