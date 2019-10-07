@@ -80,12 +80,10 @@
 
         var lib_name_lookup = {
             "x86-win32": {
-                "vpx": "vpx",
-                "gameroomext": "gameroomext",
+                "vpx": "vpx"
             },
             "x86_64-win32": {
-                "vpx": "vpx",
-                "gameroomext": "gameroomext",
+                "vpx": "vpx"
             },
         }
 
@@ -185,7 +183,6 @@
                 physics3d: document.getElementById("physics3d").checked,
                 record: document.getElementById("record").checked,
                 profiler: document.getElementById("profiler").checked,
-                gameroom: document.getElementById("gameroom").checked,
                 sound: document.getElementById("sound").checked,
                 input: document.getElementById("input").checked,
             }
@@ -239,11 +236,6 @@
                 push_libs(PLATFORMS, exclusions.platforms, [ "profilerext_null" ]);
                 push_excluded_libs(PLATFORMS, exclusions.platforms, [ "profilerext" ]);
                 push_excluded_symbols(PLATFORMS, exclusions.platforms, [ "ProfilerExt" ]);
-            }
-            if (settings.gameroom) {
-                exclusions.settings.push("Gameroom");
-                push_excluded_libs(WINDOWS, exclusions.platforms, ["gameroomext"]);
-                push_excluded_symbols(WINDOWS, exclusions.platforms, [ "GameroomExt" ]);
             }
             if (settings.sound) {
                 exclusions.settings.push("Sound");
@@ -383,12 +375,6 @@
                     <label><input id="profiler" type="checkbox" onchange="update_manifest()"/>Exclude Profiler
                         <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
                             <span class="tooltiptext">Remove the on-screen and web profiler</span>
-                        </div>
-                    </label>
-                    <label><input id="gameroom" type="checkbox" onchange="update_manifest()"/>Exclude Gameroom
-                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Remove Facebook Gameroom.</br>
-                            <img src="images/windows_w.png" class="osicon"/</span>
                         </div>
                     </label>
                     <label><input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound</label>
