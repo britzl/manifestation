@@ -80,17 +80,23 @@
 
         var lib_name_lookup = {
             "x86-win32": {
-                "vpx": "vpx"
+                "vpx": "vpx",
+                "vulkan": "vulkan-1"
             },
             "x86_64-win32": {
-                "vpx": "vpx"
+                "vpx": "vpx",
+                "vulkan": "vulkan-1"
             },
         }
 
         var PLATFORMS = [ "x86_64-osx", "x86_64-linux", "js-web", "wasm-web", "x86-win32", "x86_64-win32", "armv7-android", "arm64-android", "armv7-ios", "arm64-ios", "x86_64-ios"]
+        var PLATFORMS_VULKAN = [ "x86_64-osx", "x86_64-linux", "x86-win32", "x86_64-win32", "armv7-android", "arm64-android", "arm64-ios"]
         var WINDOWS = [ "x86-win32", "x86_64-win32" ]
+        var LINUX = [ "x86_64-linux" ]
         var WEB = [ "js-web", "wasm-web" ]
         var ANDROID = [ "armv7-android", "arm64-android" ]
+        var MACOS = [ "x86_64-osx" ]
+        var IOS = [ "armv7-ios", "arm64-ios", "x86_64-ios" ]
 
         function find_in(list, what) {
             for (var i=0; i < list.length; i++) {
@@ -111,6 +117,14 @@
 
         function is_android(platform) {
             return find_in(ANDROID, platform);
+        }
+
+        function is_macos(platform) {
+            return find_in(MACOS, platform);
+        }
+
+        function is_ios(platform) {
+            return find_in(IOS, platform);
         }
 
         function platformify_excluded_lib(platform, name) {
@@ -162,10 +176,24 @@
                 });
             });
         }
+        function push_symbols(platforms, exclusions, names) {
+            names.forEach(function(name) {
+                platforms.forEach(function(platform) {
+                    exclusions[platform].symbols.push('"' + name + '"');
+                });
+            });
+        }
         function push_link_flags(platforms, exclusions, names) {
             names.forEach(function(name) {
                 platforms.forEach(function(platform) {
                     exclusions[platform].linkFlags.push('"' + name + '"');
+                })
+            });
+        }
+        function push_frameworks(platforms, exclusions, names) {
+            names.forEach(function(name) {
+                platforms.forEach(function(platform) {
+                    exclusions[platform].frameworks.push('"' + name + '"');
                 })
             });
         }
@@ -185,6 +213,7 @@
                 profiler: document.getElementById("profiler").checked,
                 sound: document.getElementById("sound").checked,
                 input: document.getElementById("input").checked,
+                vulkan: document.getElementById("vulkan").checked,
             }
 
             var excluded
@@ -200,6 +229,8 @@
                     excludeJars: [],
                     excludeSymbols: [],
                     libs: [],
+                    frameworks: [],
+                    symbols: [],
                     linkFlags: [],
                 };
             });
@@ -248,6 +279,18 @@
                 push_excluded_libs(PLATFORMS, exclusions.platforms, ["hid"]);
                 push_libs(PLATFORMS, exclusions.platforms, ["hid_null"]);
             }
+            if (settings.vulkan) {
+                // var PLATFORMS = [ "x86_64-osx", "x86_64-linux", "js-web", "wasm-web", "x86-win32", "x86_64-win32", "armv7-android", "arm64-android", "armv7-ios", "arm64-ios", "x86_64-ios"]
+                push_libs([ "x86_64-osx", "arm64-ios" ], exclusions.platforms, ["graphics_vulkan", "MoltenVK"]);
+                push_libs(ANDROID, exclusions.platforms, ["graphics_vulkan", "vulkan"]);
+                push_libs(WINDOWS, exclusions.platforms, ["graphics_vulkan", "vulkan"]);
+                push_libs(LINUX, exclusions.platforms, ["graphics_vulkan", "vulkan", "X11-xcb"]);
+                push_frameworks([ "x86_64-osx" ], exclusions.platforms, ["Metal", "IOSurface", "QuartzCore"]);
+                push_frameworks([ "arm64-ios" ], exclusions.platforms, ["Metal", "QuartzCore"]);
+                push_symbols(PLATFORMS_VULKAN, exclusions.platforms, ["GraphicsAdapterVulkan"]);
+                push_excluded_libs(PLATFORMS_VULKAN, exclusions.platforms, ["graphics"]);
+                push_excluded_symbols(PLATFORMS_VULKAN, exclusions.platforms, ["GraphicsAdapterOpenGL"]);
+            }
 
             var manifest = "# App manifest generated {0}\n".format(new Date());
             manifest += "# Settings: {0}\n".format(exclusions.settings.join());
@@ -263,7 +306,11 @@
                     manifest += "            excludeJars: [{0}]\n".format(exclusions.platforms[platform].excludeJars.join());
                 }
                 manifest += "            excludeSymbols: [{0}]\n".format(exclusions.platforms[platform].excludeSymbols.join());
+                manifest += "            symbols: [{0}]\n".format(exclusions.platforms[platform].symbols.join());
                 manifest += "            libs: [{0}]\n".format(exclusions.platforms[platform].libs.join());
+                if (is_ios(platform) || is_macos(platform)) {
+                    manifest += "            frameworks: [{0}]\n".format(exclusions.platforms[platform].frameworks.join());
+                }
                 manifest += "            linkFlags: [{0}]\n".format(exclusions.platforms[platform].linkFlags.join());
                 manifest += "\n";
             });
@@ -379,6 +426,17 @@
                     </label>
                     <label><input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound</label>
                     <label><input id="input" type="checkbox" onchange="update_manifest()"/>Exclude Input</label>
+                    <label><input id="vulkan" type="checkbox" onchange="update_manifest()"/>Use Vulkan/Metal
+                        <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
+                            <span class="tooltiptext">BETA</br>
+                                <img src="images/windows_w.png" class="osicon"/>
+                                <img src="images/osx_w.png" class="osicon"/>
+                                <img src="images/linux_w.png" class="osicon"/>
+                                <img src="images/android_w.png" class="osicon"/>
+                                <img src="images/ios_w.png" class="osicon"/>
+                            </span>
+                        </div>
+                    </label>
                 </form>
             </div>
             <div class="nine columns">
