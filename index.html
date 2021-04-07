@@ -215,7 +215,7 @@
                 input: document.getElementById("input").checked,
                 vulkan: (document.getElementById("vulkan").checked || document.getElementById("vulkan_and_opengl").checked),
                 opengl: (document.getElementById("opengl").checked || document.getElementById("vulkan_and_opengl").checked),
-                androidx: document.getElementById("androidx").checked,
+                androidsupport: document.getElementById("androidsupport").checked,
             }
 
             var excluded
@@ -319,8 +319,8 @@
                     manifest += "            frameworks: [{0}]\n".format(exclusions.platforms[platform].frameworks.join());
                 }
                 manifest += "            linkFlags: [{0}]\n".format(exclusions.platforms[platform].linkFlags.join());
-                if (is_android(platform) && settings.androidx) {
-                    manifest += "            jetifier: true\n";
+                if (is_android(platform)) {
+                    manifest += "            jetifier: {0}\n".format(settings.androidsupport ? "false" : "true");
                 }
                 manifest += "\n";
             });
@@ -437,9 +437,9 @@
                     <label><input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound</label>
                     <label><input id="input" type="checkbox" onchange="update_manifest()"/>Exclude Input</label>
 
-                    <label><input id="androidx" type="checkbox" onchange="update_manifest()"/>Use AndroidX
+                    <label><input id="androidsupport" type="checkbox" onchange="update_manifest()"/>Use Android support lib
                         <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
-                            <span class="tooltiptext">Migrate project dependencies and libraries to AndroidX. Available from Defold 1.2.177.</br>
+                            <span class="tooltiptext">Use the old Android support libraries instead of AndroidX. Available from Defold 1.2.177.</br>
                                 <img src="images/android_w.png" class="osicon"/>
                             </span>
                         </div>
