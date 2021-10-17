@@ -214,6 +214,7 @@
                 sound: document.getElementById("sound").checked,
                 input: document.getElementById("input").checked,
                 liveupdate: document.getElementById("liveupdate").checked,
+                basis_transcoder: document.getElementById("basis_transcoder").checked,
                 vulkan: (document.getElementById("vulkan").checked || document.getElementById("vulkan_and_opengl").checked),
                 opengl: (document.getElementById("opengl").checked || document.getElementById("vulkan_and_opengl").checked),
                 androidsupport: document.getElementById("androidsupport").checked,
@@ -286,6 +287,11 @@
                 exclusions.settings.push("LiveUpdate");
                 push_excluded_libs(PLATFORMS, exclusions.platforms, ["liveupdate"]);
                 push_libs(PLATFORMS, exclusions.platforms, ["liveupdate_null"]);
+            }
+            if (settings.basis_transcoder) {
+                exclusions.settings.push("Basis Transcoder");
+                push_excluded_libs(PLATFORMS, exclusions.platforms, ["graphics_transcoder_basisu", "basis_transcoder"]);
+                push_libs(PLATFORMS, exclusions.platforms, ["graphics_transcoder_null"]);
             }
             if (settings.vulkan) {
                 exclusions.settings.push("Vulkan");
@@ -443,6 +449,7 @@
                     <label><input id="sound" type="checkbox" onchange="update_manifest()"/>Exclude Sound</label>
                     <label><input id="input" type="checkbox" onchange="update_manifest()"/>Exclude Input</label>
                     <label><input id="liveupdate" type="checkbox" onchange="update_manifest()"/>Exclude LiveUpdate</label>
+                    <label><input id="basis_transcoder" type="checkbox" onchange="update_manifest()"/>Exclude Basis Universal transcoder</label>
 
                     <label><input id="androidsupport" type="checkbox" onchange="update_manifest()"/>Use Android support lib
                         <div class="tooltip"><img src="images/question-mark_16.png" class="tooltip"/>
