@@ -1,4 +1,3 @@
-# Manifestation
-Defold App Manifest generator. Read more about app manifests in [this forum post](https://forum.defold.com/t/native-extensions/4946/133?u=britzl).
+IMPORTANT! App manifests can now be created directly from the Defold editor.
 
-Try Manifestation live here: https://britzl.github.io/manifestation/
+https://defold.com/manuals/app-manifest/
